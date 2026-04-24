@@ -76,55 +76,84 @@ model, preprocessor = load_artifacts()
 
 
 st.subheader("1. Data Ingestion")
-uploaded_file = st.file_uploader("Upload Transaction CSV", type="csv")
+
+# Create two columns for the two ways to get data
+col_upload, col_demo = st.columns(2)
+
+with col_upload:
+    uploaded_file = st.file_uploader("Upload your own CSV", type="csv")
+
+with col_demo:
+    st.write("--- or ---")
+    run_demo = st.button("🎲 Generate Random Demo Batch (1k rows)")
+
+# Logic to determine which data to use
+raw_data = None
 
 if uploaded_file:
     raw_data = pd.read_csv(uploaded_file)
-    st.write("Preview of Uploaded Data:", raw_data.head(5))
+elif run_demo:
+    try:
+        # Pull the test data directly from your GitHub (use the 'Raw' link)
+        # Replace 'YOUR_USER' and 'YOUR_REPO' with your actual GitHub details
+        demo_url = "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/test.csv"
+        full_test_data = pd.read_csv(demo_url)
+        
+        # Pick 1,000 random rows
+        raw_data = full_test_data.sample(n=1000).reset_index(drop=True)
+        st.success("Successfully loaded 1,000 random transactions!")
+    except Exception as e:
+        st.error(f"Could not load demo data. Make sure test.csv is in your GitHub. Error: {e}")
+
+# --- PROCESSING & PREDICTION (Only runs if raw_data exists) ---
+if raw_data is not None:
+    st.write("Preview of Data:", raw_data.head(5))
     
-    if st.button("🚀 Analyze for Fraud"):
-        # Preprocess
-        cleaned_data = preprocessor.transform(raw_data)
+    # We trigger the analysis automatically for the demo, 
+    # or via button for the upload
+    if run_demo or st.button("🚀 Analyze Uploaded Data"):
+        with st.spinner("Applying SageMaker Preprocessing rules..."):
+            # 1. Preprocess
+            cleaned_data = preprocessor.transform(raw_data)
+            featured_data = add_features(cleaned_data)
 
-        featured_data = add_features(cleaned_data)
+            X = featured_data.drop(columns=['Class'], errors='ignore')
         
-        X = featured_data.drop(columns=['Class'], errors='ignore')
-        
-        # Predict
-        preds = model.predict(X)
-        probs = model.predict_proba(X)[:, 1]
-        
-        raw_data['Prediction'] = preds
-        raw_data['Risk_Score'] = probs
-        
-        # Display Results
-        st.subheader("2. Analysis Results")
-        frauds = raw_data[raw_data['Prediction'] == 1]
-        
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total Scanned", len(raw_data))
-        col2.metric("Fraud Detected", len(frauds), delta_color="inverse")
-        # Get the ROC AUC from your metrics file
-        col3.metric("Model Confidence (AUC)", metrics.split(":")[-1].strip())
-
-        # Tabs for Data vs. Model Evidence
-        tab1, tab2 = st.tabs(["🔍 Flagged Transactions", "📊 Model Evidence"])
-
-        with tab1:
-            if len(frauds) > 0:
-                st.error("🚨 High-Risk Transactions Found")
-                st.dataframe(frauds.sort_values(by='Risk_Score', ascending=False))
-            else:
-                st.success("✅ No fraudulent patterns detected.")
-
-        with tab2:
-            st.write("The Confusion Matrix below shows how the model performed on unseen test data.")
+            # Predict
+            preds = model.predict(X)
+            probs = model.predict_proba(X)[:, 1]
             
-            # DISPLAY CONFUSION MATRIX HERE
-            st.image("confusion_matrix.png", caption="Confusion Matrix (Test Set)", use_container_width=True)
+            raw_data['Prediction'] = preds
+            raw_data['Risk_Score'] = probs
             
-            # Display the Classification Report Table
-            st.write("### Detailed Class Metrics")
-            report_df = parse_classification_report("classification_report.txt")
-            if report_df is not None:
-                st.table(report_df)
+            # Display Results
+            st.subheader("2. Analysis Results")
+            frauds = raw_data[raw_data['Prediction'] == 1]
+            
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Scanned", len(raw_data))
+            col2.metric("Fraud Detected", len(frauds), delta_color="inverse")
+            # Get the ROC AUC from your metrics file
+            col3.metric("Model Confidence (AUC)", metrics.split(":")[-1].strip())
+    
+            # Tabs for Data vs. Model Evidence
+            tab1, tab2 = st.tabs(["🔍 Flagged Transactions", "📊 Model Evidence"])
+    
+            with tab1:
+                if len(frauds) > 0:
+                    st.error("🚨 High-Risk Transactions Found")
+                    st.dataframe(frauds.sort_values(by='Risk_Score', ascending=False))
+                else:
+                    st.success("✅ No fraudulent patterns detected.")
+    
+            with tab2:
+                st.write("The Confusion Matrix below shows how the model performed on unseen test data.")
+                
+                # DISPLAY CONFUSION MATRIX HERE
+                st.image("confusion_matrix.png", caption="Confusion Matrix (Test Set)", use_container_width=True)
+                
+                # Display the Classification Report Table
+                st.write("### Detailed Class Metrics")
+                report_df = parse_classification_report("classification_report.txt")
+                if report_df is not None:
+                    st.table(report_df)
