@@ -93,17 +93,17 @@ raw_data = None
 if uploaded_file:
     raw_data = pd.read_csv(uploaded_file)
 elif run_demo:
-    try:
-        # Pull the test data directly from your GitHub (use the 'Raw' link)
-        # Replace 'YOUR_USER' and 'YOUR_REPO' with your actual GitHub details
-        demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/refs/heads/main/raw_to_test.csv"
-        full_test_data = pd.read_csv(demo_url)
-        
-        # Pick 1,000 random rows
-        raw_data = full_test_data.sample(n=4000).reset_index(drop=True)
-        st.success("Successfully loaded 4,000 random transactions!")
-    except Exception as e:
-        st.error(f"Could not load demo data. Make sure test.csv is in your GitHub. Error: {e}")
+
+    demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/refs/heads/main/raw_to_test.csv"
+    with st.spinner("Fetching data from GitHub..."):
+        try:
+            raw_data = pd.read_csv(
+                demo_url, 
+                storage_options={'User-Agent': 'Mozilla/5.0'}
+            ).sample(n=4000).reset_index(drop=True)
+            st.success("Successfully loaded 4,000 random transactions!")
+        except Exception as e:
+            st.error(f"Error loading demo: {e}")
 
 # --- PROCESSING & PREDICTION (Only runs if raw_data exists) ---
 if raw_data is not None:
