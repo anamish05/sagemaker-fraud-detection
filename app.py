@@ -96,7 +96,7 @@ elif run_demo:
     try:
         # Pull the test data directly from your GitHub (use the 'Raw' link)
         # Replace 'YOUR_USER' and 'YOUR_REPO' with your actual GitHub details
-        demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/main/test.csv"
+        demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/blob/main/raw_to_test.csv"
         full_test_data = pd.read_csv(demo_url)
         
         # Pick 1,000 random rows
