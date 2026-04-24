@@ -96,12 +96,12 @@ elif run_demo:
     try:
         # Pull the test data directly from your GitHub (use the 'Raw' link)
         # Replace 'YOUR_USER' and 'YOUR_REPO' with your actual GitHub details
-        demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/blob/main/raw_to_test.csv"
+        demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/refs/heads/main/raw_to_test.csv"
         full_test_data = pd.read_csv(demo_url)
         
         # Pick 1,000 random rows
-        raw_data = full_test_data.sample(n=1000).reset_index(drop=True)
-        st.success("Successfully loaded 1,000 random transactions!")
+        raw_data = full_test_data.sample(n=4000).reset_index(drop=True)
+        st.success("Successfully loaded 4,000 random transactions!")
     except Exception as e:
         st.error(f"Could not load demo data. Make sure test.csv is in your GitHub. Error: {e}")
 
