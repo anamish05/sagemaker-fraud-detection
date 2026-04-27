@@ -1,62 +1,66 @@
-# 🛡️ End-to-End Credit Card Fraud Detection Pipeline
+#  End-to-End Credit Card Fraud Detection Pipeline
 
 ### AWS SageMaker | XGBoost | Streamlit | MLOps
+### An automated SageMaker-integrated solution for identifying fraudulent transactions using XGBoost and Streamlit.
 
-## 📌 Project Overview
+##  Project Overview
 
-Financial fraud accounts for billions in annual losses. This project demonstrates a production-ready Machine Learning pipeline designed to identify high-risk transactions with high recall. By leveraging **AWS SageMaker** for scalable training and **Streamlit** for real-time inference, the system bridges the gap between data science and business utility.
+This project implements a robust machine learning pipeline designed to handle extreme class imbalance and deliver high-precision predictions. The system spans from automated data ingestion in AWS S3 to a user-facing Streamlit dashboard, and bridges the gap between data science and business utility.
 
-## 🛠️ Tech Stack & Architecture
+##  Tech Stack
 
--   **Infrastructure:** AWS SageMaker (SKLearn Processing & XGBoost Containers)
-    
--   **Storage:** Amazon S3 (Artifact versioning and data lake)
-    
--   **Model:** XGBoost (Optimized for imbalanced classification)
-    
--   **Frontend:** Streamlit Cloud (Interactive Dashboard)
-    
--   **Preprocessing:** Custom Modular Pipeline (Handling data drift & training-serving skew)
-    
+- Cloud: AWS (SageMaker, S3, IAM)
+- ML: XGBoost, RandomSearchCV, Scikit-Learn
+- Data: Pandas, NumPy (with heavy memory optimization)
+- Interface: Streamlit, Matplotlib, Seaborn
 
-## 🚀 The MLOps Pipeline
+##  System Architecture
+The project is built on the Amazon SageMaker ecosystem, ensuring scalability and reproducibility.
 
-This project avoids "Laptop Data Science" by following a professional engineering workflow:
+-   **Data Ingestion:** Automated Kaggle API integration to fetch raw data (credit card dataset) directly into Amazon S3.
 
-1.  **Data Processing:** Utilized `SKLearnProcessor` in SageMaker to clean data, handle NaNs via median imputation, and manage outliers using Boxplot bounds.
-    
-2.  **Feature Engineering:** Generated synthetic features (`V1_sq`, `Sum_features`, `High_amount`) to capture non-linear relationships in fraud patterns.
-    
-3.  **Artifact Serialization:** Exported training-set statistics (medians/quantiles) into `.joblib` files to ensure **Inference Consistency**—the app cleans data exactly like the training job did.
-    
-4.  **Deployment:** Built a Streamlit interface that allows risk analysts to upload batch CSVs and receive instant probability scores.
+-   **Processing job (SageMaker):**  
+    _Memory Optimization_: Downcasting numerical types to handle large datasets efficiently.  
+    _Data Cleaning_: Handling missing values and outliers.  
+    _Splitting_: Stratified Train/Test splitting to maintain class distribution.  
+
+-   **Feature Engineering:** Derived from statistical data analysis (`V1_sq`, `Sum_features`, `High_amount`) to capture non-linear relationships in fraud patterns.
+  
+-   **Training Job (SageMaker):** Pipeline normalization+XGBoost classifier trained using optimal hyperparameters.
+  
+-   **Frontend:** Streamlit application for real-time inference and visualization that allows risk analysts to upload batch CSVs and receive instant probability scores.
+
+## Key Technical Challenges & Solutions
+
+**Handling Extreme Class Imbalance**:  
+- Focused on optimizing the Confusion Matrix to minimize both False Negatives and False Positives.  
+- Utilized scale_pos_weight, colsample_bytree in XGBoost.  
+
+**Model choosing**:  
+XGBoost Classifier handles well extreme class imbalance, it has a parameter `scale_pos_weight` allowing the model to pay more attention to the minority class (fraud). Since it is tree-based, it doesn't care about the exact distribution of the data, and it is well performs on tabular data as is this case.  
+
+**Hyperparameter Optimization (HPO)**:  
+To save on cloud costs and execution time, I performed RandomizedSearchCV locally/offline to find the optimal configuration.   
+These "best-fit" parameters were then injected into the SageMaker Training Job for final model persistence.  
+
+**Production-Ready Preprocessing**:  
+A common "train-serving skew" occurs when the model expects cleaned data but receives raw data.  
+I exported the specific cleaning parameters into a separate configuration file. This ensures that the Streamlit app applies the exact same transformations to user-uploaded data as were applied during training, avoiding data leakeage.   
     
 
 ## 📊 Model Performance
 
 To minimize financial risk, the model was optimized for **Recall** and **ROC-AUC** to ensure that as few fraudulent transactions as possible go undetected.
+| Metric | Score |
+| :--- | :--- |
+| **ROC-AUC** | 0.96 |
+| **Precision (Fraud)** | 0.90 |
+| **Recall (Fraud)** | 0.77 |
 
-**Metric**
-
-**Score**
-
-**ROC-AUC**
-
-0.98
-
-**Precision (Fraud)**
-
-0.85
-
-**Recall (Fraud)**
-
-0.82
 
 ### Model Evidence
 
--   **Confusion Matrix:** Located in the "Model Evidence" tab of the live app, showing minimal False Negatives.
-    
--   **Handling Imbalance:** Integrated `imbalanced-learn` (SMOTE) to ensure the model learns from the rare 0.17% of fraud cases.
+-   **Confusion Matrix:** Located in the "Model Evidence" tab of the live app, showing minimal False Negatives (missed fraud) and False Positives (disturbed real clients).
     
 
 ## 📂 Repository Structure
@@ -68,6 +72,7 @@ Plaintext
 ├── preprocessing_utils.py     # Shared inference logic
 ├── scripts/
 │   └── preprocessing.py       # SageMaker Processing Job script
+│   └── training.py            # SageMaker Training Job script
 ├── notebooks/
 │   └── sagemaker_pipeline.ipynb # Full AWS Pipeline execution
 ├── model.joblib               # Trained XGBoost model
@@ -78,15 +83,15 @@ Plaintext
 
 ## 🎮 How to Use
 
-1.  **Visit the App:** [Link to your Streamlit App]
+1.  **Visit the App:** https://sagemaker-fraud-detection-5s7pyzqsstgemupv6amhn4.streamlit.app/
     
-2.  **Upload Data:** Use the provided `sample_test.csv` in the repo.
+2.  **Upload Data:** Use the provided `raw_to_test.csv` in the repo or generate random batch to test.
     
 3.  **Analyze:** Review the flagged transactions and explore the model metrics in the secondary tab.
     
 
 ----------
 
-**Author:** [Your Name]
+**Author:** Anastasia Mishchenko
 
-**Contact:** [Your LinkedIn] | [Your Email]
+**Contact:** https://www.linkedin.com/in/anastasia-mishchenko-2b6973104/
