@@ -4,6 +4,7 @@ import joblib
 import io
 import numpy as np
 from preprocessing_utils import ProPreprocessor, add_features
+import requests
 
 
 # --- HELPER: Parse Text Report to Table ---
@@ -104,6 +105,8 @@ elif run_demo:
             st.success("Successfully loaded 4,000 random transactions!")
         except Exception as e:
             st.error(f"Error loading demo: {e}")
+            response = requests.get(demo_url)
+            st.write(f"URL Status Code: {response.status_code}") # If this is 404, the path is wrong.
 
 # --- PROCESSING & PREDICTION (Only runs if raw_data exists) ---
 if raw_data is not None:
