@@ -5,6 +5,7 @@ import io
 import numpy as np
 from preprocessing_utils import ProPreprocessor, add_features
 import requests
+from pathlib import Path
 
 
 # --- HELPER: Parse Text Report to Table ---
@@ -27,7 +28,8 @@ def parse_classification_report(file_path):
         return pd.DataFrame(data)
     except:
         return None
-    
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="FraudEngine Classificator", layout="wide")
@@ -44,12 +46,12 @@ st.sidebar.header("📊 Model Performance")
 #     st.sidebar.image("confusion_matrix.png", use_container_width=True)
 
 if st.sidebar.checkbox("Show Roc Curve"):
-    st.sidebar.image("roc_curve.png", use_container_width=True)
+    st.sidebar.image(BASE_DIR /"roc_curve.png", use_container_width=True)
 
 # Show the Classification Report text
 if st.sidebar.checkbox("Show Classification Report"):
     st.sidebar.markdown("**Detailed Metrics**")
-    report_df = parse_classification_report("classification_report.txt")
+    report_df = parse_classification_report(BASE_DIR /"classification_report.txt")
     if report_df is not None:
         st.sidebar.table(report_df)
     else:
@@ -57,7 +59,7 @@ if st.sidebar.checkbox("Show Classification Report"):
 
 # Show the ROC AUC Score
 try:
-    with open("metrics.txt", "r") as f:
+    with open(BASE_DIR /"metrics.txt", "r") as f:
         metrics = f.read()
     st.sidebar.metric("ROC AUC Score", metrics.split(":")[-1].strip())
 except:
@@ -86,7 +88,7 @@ with col_upload:
 
 with col_demo:
     st.write("--- or ---")
-    run_demo = st.button("🎲 Generate Random Demo Batch (1k rows)")
+    run_demo = st.button("🎲 Generate Random Demo Batch (4k rows)")
 
 # Logic to determine which data to use
 raw_data = None
@@ -100,13 +102,15 @@ elif run_demo:
         try:
             raw_data = pd.read_csv(
                 demo_url, 
+                sep=',', encoding='utf-8', on_bad_lines='skip',
                 storage_options={'User-Agent': 'Mozilla/5.0'}
             ).sample(n=4000).reset_index(drop=True)
             st.success("Successfully loaded 4,000 random transactions!")
         except Exception as e:
             st.error(f"Error loading demo: {e}")
             response = requests.get(demo_url)
-            st.write(f"URL Status Code: {response.status_code}") # If this is 404, the path is wrong.
+            st.write(f"URL Status Code: {response.status_code}") 
+            st.code(response.text[:100])
 
 # --- PROCESSING & PREDICTION (Only runs if raw_data exists) ---
 if raw_data is not None:
@@ -153,7 +157,7 @@ if raw_data is not None:
                 st.write("The Confusion Matrix below shows how the model performed on unseen test data.")
                 
                 # DISPLAY CONFUSION MATRIX HERE
-                st.image("confusion_matrix.png", caption="Confusion Matrix (Test Set)", use_container_width=True)
+                st.image(BASE_DIR /"confusion_matrix.png", caption="Confusion Matrix (Test Set)", use_container_width=True)
                 
                 # Display the Classification Report Table
                 st.write("### Detailed Class Metrics")
