@@ -30,7 +30,7 @@ The project is built on the Amazon SageMaker ecosystem, ensuring scalability and
   
 -   **Frontend:** Streamlit application for real-time inference and visualization that allows risk analysts to upload batch CSVs and receive instant probability scores.
 
-![System Architecture](./data/diagram-export-4-27-2026-8_55_01-PM.png)
+![System Architecture](./data/diagram.png)
 
 ## Key Technical Challenges & Solutions
 
