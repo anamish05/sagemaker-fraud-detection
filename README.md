@@ -67,25 +67,30 @@ To minimize financial risk, the model was optimized for **Recall** and **ROC-AUC
 
 ## 📂 Repository Structure
 
-Plaintext
 
 ```
-├── app.py                     # Streamlit Frontend
-├── preprocessing_utils.py     # Shared inference logic
-├── scripts/
-│   └── preprocessing.py       # SageMaker Processing Job script
-│   └── training.py            # SageMaker Training Job script
+├── app/
+│   └── app.py                               # Streamlit Frontend app
+│   └── preprocessing_utils.py               # Shared inference logic
+├── src/
+│   └── preprocessing.py                     # SageMaker Processing Job script
+│   └── training.py                          # SageMaker Training Job script
 ├── notebooks/
-│   └── sagemaker_pipeline.ipynb # Full AWS Pipeline execution
-├── model.joblib               # Trained XGBoost model
-├── preprocessor_meta.joblib    # Frozen training parameters (Medians/Bounds)
-└── requirements.txt           # Environment dependencies
+│   └── pipeline_aws.ipynb                   # Full AWS Pipeline execution
+│   └── preliminary_data_analysis.ipynb      # preliminary statistical data analysis
+│   └── Param_search.ipynb                   # RandomizedSearch CV for optimal hyperparameters
+├── data/
+│   └── raw_to_test.csv                      # test dataset for testing in Streamlit app
+├── model.joblib                             # Trained XGBoost model
+├── preprocessor_meta.joblib                 # Frozen data cleaning and outliers hadling parameters (Medians/Bounds)
+└── requirements.txt                         # Environment dependencies
+└── README.md                                # Description of the project
 
 ```
 
 ## 🎮 How to Use
 
-1.  **Visit the App:** https://sagemaker-fraud-detection-5s7pyzqsstgemupv6amhn4.streamlit.app/
+1.  **Visit the App:** https://sagemaker-fraud-detection-zjvqxhadq4zjrzcvjrrela.streamlit.app/
     
 2.  **Upload Data:** Use the provided `raw_to_test.csv` in the repo or generate random batch to test.
     
