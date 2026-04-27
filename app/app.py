@@ -161,6 +161,6 @@ if raw_data is not None:
                 
                 # Display the Classification Report Table
                 st.write("### Detailed Class Metrics")
-                report_df = parse_classification_report("classification_report.txt")
+                report_df = parse_classification_report(BASE_DIR /"classification_report.txt")
                 if report_df is not None:
                     st.table(report_df)
