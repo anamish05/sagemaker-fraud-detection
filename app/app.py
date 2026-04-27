@@ -94,7 +94,7 @@ if uploaded_file:
     raw_data = pd.read_csv(uploaded_file)
 elif run_demo:
 
-    demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/refs/heads/main/raw_to_test.csv"
+    demo_url = "https://raw.githubusercontent.com/anamish05/sagemaker-fraud-detection/refs/heads/main/data/raw_to_test.csv"
     with st.spinner("Fetching data from GitHub..."):
         try:
             raw_data = pd.read_csv(
